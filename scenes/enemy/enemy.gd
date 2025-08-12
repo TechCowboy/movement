@@ -24,7 +24,7 @@ var blend_speed:float	= 15.0
 enum State {IDLE, WAITNG_TO_MOVE, MOVE}
 
 var state = State.IDLE
-var idle_wait_time = 1.5
+var idle_wait_time = 10
 var idle_wait_time_count = 0
 var nav_map = null
 
@@ -39,17 +39,31 @@ func update_animation():
 	animation_tree["parameters/turn/blend_amount"] 		= anim_turn
 	animation_tree["parameters/walk/blend_amount"] 		= anim_walking
 
+func change_state(new_state):
+	if new_state != state:
+		match (new_state):
+			State.IDLE:
+				print(name + ": IDLE")
+			State.WAITNG_TO_MOVE:
+				print(name + ": WAITNG_TO_MOVE")			
+			State.MOVE:
+				print(name + ": MOVE")
+			_:
+				print(name + ": Unknown")
+	
+		state = new_state
 	
 func _physics_process(delta: float) -> void:
 	# Add the gravity.
 	if not is_on_floor():
 		velocity += get_gravity() * delta
-		
-
+	
+	
 	match (state):
 		State.IDLE:
 
 			_on_idle(delta)
+			
 				
 		State.WAITNG_TO_MOVE:
 			_on_waiting_to_move(delta)
@@ -66,7 +80,7 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 
-
+	update_animation()
 	move_and_slide()
 	
 # As we go into the idle state,
@@ -75,13 +89,14 @@ func _physics_process(delta: float) -> void:
 func _on_idle(delta):
 	velocity = Vector3.ZERO
 	idle_wait_time_count = idle_wait_time
-	state = State.WAITNG_TO_MOVE
+	change_state(State.WAITNG_TO_MOVE)
 	
 	anim_attack = lerp(anim_attack, 0.0, blend_speed*delta)
 	anim_pursue = lerp(anim_pursue, 0.0, blend_speed*delta)
 	anim_search = lerp(anim_search, 0.0, blend_speed*delta)
 	anim_turn	= lerp(anim_turn, 	0.0, blend_speed*delta)
 	anim_walking= lerp(anim_walking,0.0, blend_speed*delta)
+
 
 # As we wait to move
 # continue to blend to the desired state
@@ -99,13 +114,11 @@ func _on_waiting_to_move(delta):
 	anim_walking= lerp(anim_walking,0.0, blend_speed*delta)
 	
 	if idle_wait_time_count <= 0:
-
-		state = State.MOVE
-		
+	
 		var raw_target = get_new_target_location()		
 		var safe_target = NavigationServer3D.map_get_closest_point(nav_map, raw_target)
 		navigation_agent_3d.target_position = safe_target
-		state = State.MOVE	
+		change_state(State.MOVE)	
 
 
 #  Let's get walking
@@ -122,8 +135,6 @@ func _on_move(delta):
 	anim_turn	= lerp(anim_turn, 	0.0, blend_speed*delta)
 	anim_walking= lerp(anim_walking,1.0, blend_speed*delta)
 
-	update_animation()
-	
 	look_at(next_position)
 	var direction = (next_position - current_position).normalized()
 	velocity = direction * SPEED
@@ -138,4 +149,5 @@ func get_new_target_location():
 # If we reach our destination, set our state to IDLE
 
 func _on_navigation_agent_3d_target_reached() -> void:
-	state = State.IDLE
+	
+	change_state(State.IDLE)
