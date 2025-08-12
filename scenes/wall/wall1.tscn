@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=3 uid="uid://bqdk7lsae68sq"]
+
+[ext_resource type="Texture2D" uid="uid://bol1j0gw7imqh" path="res://assets/textures/pixabay-com-brick-wall-1916752_1280.jpg" id="1_vlj63"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vlj63"]
+size = Vector3(10, 10, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7hgvn"]
+albedo_texture = ExtResource("1_vlj63")
+
+[sub_resource type="BoxMesh" id="BoxMesh_tqkao"]
+material = SubResource("StandardMaterial3D_7hgvn")
+size = Vector3(10, 10, 0.2)
+
+[node name="Wall1" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_vlj63")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_tqkao")
